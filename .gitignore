@@ -1,0 +1,16 @@
+# Project materials and datasets (must not be submitted)
+/en.subject.pdf
+*.zip
+/images/
+/augmented_directory/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Local tooling and OS files
+.DS_Store
+.idea/
+.vscode/
