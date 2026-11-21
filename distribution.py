@@ -52,7 +52,9 @@ def plot_bar_chart(plant_dict):
 
         plt.figure(figsize=(10, 6))
 
-        plt.bar(class_names, image_count)
+        colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
+
+        plt.bar(class_names, image_count, color=colors)
 
         plt.title(plant_name + " image distribution")
         plt.xlabel("Classes")
@@ -72,9 +74,12 @@ def plot_pie_chart(plant_dict):
 
         plt.figure(figsize=(8, 6))
 
+        colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
+
         plt.pie(
             image_count,
             labels=class_names,
+            colors = colors,
             autopct="%1.1f%%",
             startangle=90,
         )
