@@ -54,23 +54,41 @@ def augment_single_image(image_path, show=True):
 
 
 def plan_augmentations(image_paths, missing_count):
-    """One augmentation for every image first, then the next one, etc."""
-    full_plan = [
-        (image_path, name)
-        for name in AUGMENTATION_PRIORITY
-        for image_path in image_paths
+    """Return {image path: [augmentation names]}.
+
+    Images are augmented in rounds. In round R, image I gets
+    augmentation number (I + R) of the priority list, wrapping around.
+    """
+    if missing_count <= 0:
+        return {}
+    full_rounds, extra_images = divmod(missing_count, len(image_paths))
+    plan = {}
+    for image_index, image_path in enumerate(image_paths):
+        rounds_count = full_rounds + (1 if image_index < extra_images else 0)
+        plan[image_path] = augmentations_starting_at(image_index, rounds_count)
+    return plan
+
+
+def augmentations_starting_at(start_index, count):
+    count = min(count, len(AUGMENTATION_PRIORITY))
+    return [
+        AUGMENTATION_PRIORITY[(start_index + offset)
+                              % len(AUGMENTATION_PRIORITY)]
+        for offset in range(count)
     ]
-    return full_plan[:missing_count]
 
 
 def balance_class(class_directory, target_count):
     original_paths = list_images(class_directory)
     missing_count = target_count - len(original_paths)
     plan = plan_augmentations(original_paths, missing_count)
-    for image_path, name in plan:
-        augmented = AUGMENTATIONS[name](load_image(image_path))
-        save_image(augmented, path_with_suffix(image_path, name))
-    return len(original_paths), len(plan)
+    for image_path, augmentation_names in plan.items():
+        image = load_image(image_path)
+        for name in augmentation_names:
+            augmented = AUGMENTATIONS[name](image)
+            save_image(augmented, path_with_suffix(image_path, name))
+    added_count = sum(len(names) for names in plan.values())
+    return len(original_paths), added_count
 
 
 def augment_dataset(source_directory, output_directory):
