@@ -39,27 +39,24 @@ Make the main programs executable if necessary:
 chmod +x Distribution.py Augmentation.py Transformation.py train.py predict.py
 ```
 
-## Download the data
+## Prepare the data
 
 The datasets are not stored in the Git repository.
 
-Download the training dataset:
+Download the training dataset from the location provided for the project and
+place its archive in the project root:
+
+```text
+leaves.zip
+```
+
+Extract the training dataset:
 
 ```bash
-curl -L https://cdn.intra.42.fr/document/document/17547/leaves.zip \
-    -o leaves.zip
 unzip leaves.zip
 ```
 
-Download the evaluation images:
-
-```bash
-curl -L https://cdn.intra.42.fr/document/document/17546/test_images.zip \
-    -o test_images.zip
-unzip test_images.zip
-```
-
-The extracted directories should look like this:
+The extracted training directory should look like this:
 
 ```text
 images/
@@ -71,10 +68,6 @@ images/
 ├── Grape_Esca/
 ├── Grape_healthy/
 └── Grape_spot/
-
-test_images/
-├── Unit_test1/
-└── Unit_test2/
 ```
 
 ## Part 1: Dataset distribution
@@ -173,6 +166,11 @@ Available options are:
 
 ## Part 4: Training
 
+> **Important:** Feature extraction from the complete dataset takes a long
+> time. During the defense, avoid running the full training process unless the
+> evaluator explicitly requests it. Extract the prepared
+> `training_output.zip` and continue with the prediction steps instead.
+
 Train the classifier:
 
 ```bash
@@ -203,69 +201,41 @@ training_output/
 The model file contains the trained `SVC`, the fitted scaler and the ordered
 list of feature columns.
 
-A different output directory and validation proportion can be specified:
-
-```bash
-./train.py images -o another_training_output --validation-size 0.2
-```
-
 The latest local reference run obtained a validation accuracy of `0.94` on
 1,445 validation images.
 
 ## Verify the training balance
 
 The training output contains 1,312 images in each of the eight classes. Display
-the counts and charts with:
+the counts and charts with the commands below.
+
+After a clean clone, first place `training_output.zip` in the project root and
+verify that its SHA-1 matches `signature.txt`:
 
 ```bash
-./Distribution.py training_output/augmented_training
-```
-
-## Package the trained artifacts
-
-The trained model and augmented training images must be provided as an external
-archive. They must not be committed to Git.
-
-Create the archive after training:
-
-```bash
-zip -r training_output.zip training_output
-```
-
-Create its SHA-1 signature on macOS:
-
-```bash
-shasum training_output.zip > signature.txt
-```
-
-On Linux, use:
-
-```bash
-sha1sum training_output.zip > signature.txt
-```
-
-Verify the signature:
-
-```bash
-cat signature.txt
 shasum training_output.zip
+cat signature.txt
 ```
 
-Commit `signature.txt` together with the source files. Keep
-`training_output.zip` outside Git but available locally for the defense.
-
-To restore the trained artifacts after a clean clone:
+The two hashes must be identical. Then extract the archive:
 
 ```bash
 unzip training_output.zip
 ```
 
-## Prediction
-
-Predict one image with the default model:
+Then run `Distribution.py` on the extracted augmented dataset:
 
 ```bash
-./predict.py test_images/Unit_test1/Apple_healthy1.JPG
+./Distribution.py training_output/augmented_training
+```
+
+## Prediction
+
+Download and extract the test dataset provided for the evaluation. Run the
+prediction program on each test image:
+
+```bash
+./predict.py path/to/test_image.JPG
 ```
 
 The default model path is:
@@ -283,27 +253,6 @@ Use a different model if necessary:
 The program prints the predicted class and displays the original and
 transformed images. The prediction uses the image content, not its filename.
 
-## Evaluation images
-
-Apple examples are stored in `Unit_test1` and grape examples in `Unit_test2`.
-
-```bash
-./predict.py test_images/Unit_test1/Apple_Black_rot1.JPG
-./predict.py test_images/Unit_test1/Apple_healthy1.JPG
-./predict.py test_images/Unit_test1/Apple_healthy2.JPG
-./predict.py test_images/Unit_test1/Apple_rust.JPG
-./predict.py test_images/Unit_test1/Apple_scab.JPG
-
-./predict.py test_images/Unit_test2/Grape_Black_rot1.JPG
-./predict.py test_images/Unit_test2/Grape_Black_rot2.JPG
-./predict.py test_images/Unit_test2/Grape_Esca.JPG
-./predict.py test_images/Unit_test2/Grape_healthy.JPG
-./predict.py test_images/Unit_test2/Grape_spot.JPG
-```
-
-The latest trained model classified all 10 supplied evaluation images
-correctly.
-
 ## Style check
 
 Install and run `flake8`:
@@ -318,14 +267,14 @@ flake8 . --exclude=.venv
 1. Clone the Git repository into an empty directory.
 2. Install the dependencies.
 3. Download and extract the supplied datasets.
-4. Compare `signature.txt` with `training_output.zip`.
+4. Compare the SHA-1 of `training_output.zip` with `signature.txt`.
 5. Extract `training_output.zip`.
 6. Run `flake8`.
 7. Run `Distribution.py` on the original dataset.
 8. Demonstrate the six augmentation operations on one copied image.
 9. Run `Distribution.py` on the balanced dataset.
 10. Demonstrate the image transformations.
-11. Show the validation results and explain the SVC model.
+11. Explain the SVC model and the validation result.
 12. Run `predict.py` on the hidden evaluation images.
 
 ## Files excluded from Git
