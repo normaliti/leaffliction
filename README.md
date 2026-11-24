@@ -36,7 +36,8 @@ pip install -r requirements.txt
 Make the main programs executable if necessary:
 
 ```bash
-chmod +x Distribution.py Augmentation.py Transformation.py train.py predict.py
+chmod +x Distribution.py Augmentation.py Transformation.py train.py predict.py \
+    evaluate.py
 ```
 
 ## Prepare the data
@@ -169,7 +170,7 @@ Available options are:
 > **Important:** Feature extraction from the complete dataset takes a long
 > time. During the defense, avoid running the full training process unless the
 > evaluator explicitly requests it. Extract the prepared
-> `training_output.zip` and continue with the prediction steps instead.
+> `training_output.zip` and continue with evaluation and prediction instead.
 
 Train the classifier:
 
@@ -188,42 +189,57 @@ The training program:
 7. Trains an RBF Support Vector Classifier.
 8. Evaluates it on the untouched validation set.
 9. Displays the classification report and confusion matrix.
-10. Saves the trained model.
+10. Saves the model, validation data, report and confusion matrix.
 
 The default output is:
 
 ```text
 training_output/
 ├── augmented_training/
-└── leaf_model.joblib
+├── confusion_matrix.png
+├── leaf_model.joblib
+├── validation_features.joblib
+├── validation_predictions.csv
+└── validation_report.txt
 ```
 
 The model file contains the trained `SVC`, the fitted scaler and the ordered
 list of feature columns.
 
-The latest local reference run obtained a validation accuracy of `0.94` on
+The latest local reference run obtained a validation accuracy of `0.9439` on
 1,445 validation images.
 
-## Verify the training balance
+## Use the prepared training output
 
-The training output contains 1,312 images in each of the eight classes. Display
-the counts and charts with the commands below.
-
-After a clean clone, first place `training_output.zip` in the project root and
-verify that its SHA-1 matches `signature.txt`:
+After a clean clone, place `training_output.zip` in the project root. Verify
+its SHA-1 before extracting it:
 
 ```bash
-shasum training_output.zip
-cat signature.txt
+shasum -c signature.txt
 ```
 
-The two hashes must be identical. Then extract the archive:
+The command must print `training_output.zip: OK`. Then extract the archive:
 
 ```bash
 unzip training_output.zip
 ```
 
-Then run `Distribution.py` on the extracted augmented dataset:
+## Reproduce the validation result
+
+Recalculate the validation accuracy with the saved model:
+
+```bash
+./evaluate.py
+```
+
+The program loads the saved validation features, applies the saved scaler and
+classifier, prints the accuracy and classification report, and displays the
+confusion matrix. It does not retrain the model.
+
+## Verify the training balance
+
+The training output contains 1,312 images in each of the eight classes. Display
+the counts and charts with the commands below.
 
 ```bash
 ./Distribution.py training_output/augmented_training
@@ -274,7 +290,7 @@ flake8 . --exclude=.venv
 8. Demonstrate the six augmentation operations on one copied image.
 9. Run `Distribution.py` on the balanced dataset.
 10. Demonstrate the image transformations.
-11. Explain the SVC model and the validation result.
+11. Run `evaluate.py` and explain the SVC model and validation result.
 12. Run `predict.py` on the hidden evaluation images.
 
 ## Files excluded from Git

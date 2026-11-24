@@ -15,6 +15,7 @@ from sklearn.metrics import (
 from sklearn.svm import SVC
 
 from Augmentation import augment_dataset, print_counts
+from evaluate import save_evaluation_results, save_validation_data
 from extract_features import build_feature_table
 from prepare_data import (
     collect_dataset_images,
@@ -169,11 +170,19 @@ def main():
             training_labels,
             validation_labels,
             _,
-            _,
+            validation_paths,
         ) = prepared_features
 
         if len(validation_labels) < 100:
             print("Warning: validation contains fewer than 100 images")
+
+        validation_data_path = arguments.output / "validation_features.joblib"
+        save_validation_data(
+            validation_features,
+            validation_labels,
+            validation_paths,
+            validation_data_path,
+        )
 
         (
             training_features,
@@ -200,6 +209,12 @@ def main():
 
         model_path = arguments.output / "leaf_model.joblib"
         save_training(model, scaler, columns_to_keep, model_path)
+        save_evaluation_results(
+            validation_labels,
+            predictions,
+            validation_paths,
+            arguments.output,
+        )
         show_confusion_matrix(validation_labels, predictions)
 
     except (OSError, ValueError) as error:
