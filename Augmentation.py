@@ -32,9 +32,9 @@ from transforms import AUGMENTATIONS
 AUGMENTATION_PRIORITY = [
     "Flip",
     "Rotate",
-    "Crop",
-    "Shear",
     "Skew",
+    "Shear",
+    "Crop",
     "Distortion",
 ]
 

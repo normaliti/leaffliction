@@ -1,8 +1,14 @@
 # Project materials and datasets (must not be submitted)
-/en.subject.pdf
+*.pdf
 *.zip
 /images/
 /augmented_directory/
+/features.csv
+/features_test.csv
+/test_images/
+/training_output/
+/transformation_output/
+*.joblib
 
 # Python
 __pycache__/

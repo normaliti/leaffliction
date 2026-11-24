@@ -1,9 +1,12 @@
+#!/usr/bin/env python3
+
 import argparse
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 
 IMAGES_EXT = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff", ".webp"}
+
 
 def count_images(directory):
     count = 0
@@ -12,6 +15,7 @@ def count_images(directory):
             if path.suffix.lower() in IMAGES_EXT:
                 count += 1
     return count
+
 
 def make_plant_dict(root_dir):
     plant_dict = {}
@@ -29,6 +33,7 @@ def make_plant_dict(root_dir):
         plant_dict[plant_name][folder_name] = image_count
     return plant_dict
 
+
 def print_plant_dict(plant_dict):
     for plant_name in plant_dict:
         classes = plant_dict[plant_name]
@@ -43,55 +48,52 @@ def print_plant_dict(plant_dict):
             print(" " + class_name + ": " + str(image_count))
 
 
-def plot_bar_chart(plant_dict):
+def plot_distribution(plant_dict):
     for plant_name in plant_dict:
         classes = plant_dict[plant_name]
 
         class_names = list(classes.keys())
-        image_count = list(classes.values())
+        image_counts = list(classes.values())
 
-        plt.figure(figsize=(10, 6))
+        colors = (plt.rcParams["axes.prop_cycle"].by_key()["color"])
 
-        colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
+        figure, axes = plt.subplots(1, 2, figsize=(14, 6))
 
-        plt.bar(class_names, image_count, color=colors)
+        pie_axis = axes[0]
+        bar_axis = axes[1]
 
-        plt.title(plant_name + " image distribution")
-        plt.xlabel("Classes")
-        plt.ylabel("Number of images")
-
-        plt.xticks(rotation=30, ha="right")
-        plt.tight_layout()
-
-    #plt.show()
-
-
-def plot_pie_chart(plant_dict):
-    for plant_name in plant_dict:
-        classes = plant_dict[plant_name]
-        class_names = list(classes.keys())
-        image_count = list(classes.values())
-
-        plt.figure(figsize=(8, 6))
-
-        colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
-
-        plt.pie(
-            image_count,
+        pie_axis.pie(
+            image_counts,
             labels=class_names,
-            colors = colors,
+            colors=colors,
             autopct="%1.1f%%",
             startangle=90,
         )
 
-        plt.title(plant_name + " class distribution")
-        plt.axis("equal")
-        plt.tight_layout()
-    
-    #plt.show()
+        pie_axis.set_title("Class proportions")
+        pie_axis.axis("equal")
+
+        bars = bar_axis.bar(class_names, image_counts, color=colors)
+
+        bar_axis.set_title("Number of images")
+        bar_axis.set_xlabel("Classes")
+        bar_axis.set_ylabel("Images")
+        bar_axis.tick_params(axis="x", rotation=30)
+
+        for label in bar_axis.get_xticklabels():
+            label.set_horizontalalignment("right")
+
+        bar_axis.bar_label(bars, padding=3)
+
+        figure.suptitle(plant_name + " image distribution")
+
+        figure.tight_layout()
+
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Analyze leaf image distribution")
+    parser = argparse.ArgumentParser(
+        description="Analyze leaf image distribution"
+    )
     parser.add_argument("directory", help="Path to the dataset directory")
 
     return parser.parse_args()
@@ -107,25 +109,18 @@ def main():
     if not root_dir.is_dir():
         print("Error: the given path is not a directory")
         return
-    
+
     plant_dict = make_plant_dict(root_dir)
-    
+
     if not plant_dict:
         print("Error: no plant directories found")
         return
 
     print_plant_dict(plant_dict)
-    plot_bar_chart(plant_dict)
-    plot_pie_chart(plant_dict)
+    plot_distribution(plant_dict)
 
     plt.show()
 
+
 if __name__ == "__main__":
     main()
-
-    
-
-
-
-
-
